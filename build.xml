@@ -9,8 +9,8 @@
 	<property name="pkg" value="com/polydes/configurations" />
 	<property name="main" value="com.polydes.configurations.ConfigurationsExtension" />
 
-	<property name="dependsOn" value="stencyl-4.1.0" />
-	
+	<property name="dependsOn" value="stencyl-4.1.0-b10638" />
+
 	<property name="name" value="Configurations" />
 	<property name="description" value="Allows game to be configured for conditional compilation." />
 	<property name="author" value="Justin Espedal" />
@@ -22,6 +22,7 @@
 	
 	<target name="dist">
 		
+		<var name="clspath" value="${swjar.4.1.0-b10638}" />
 		<var name="usinglibs" value="false" />
 		
 		<antcall>

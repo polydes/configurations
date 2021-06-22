@@ -1,0 +1,83 @@
+plugins {
+	id 'eclipse'
+	id 'java-library'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(16))
+    }
+}
+
+group = 'com.polydes'
+version = rootProject.file('version.txt').text.trim()
+
+sourceSets {
+	main {
+	    java {
+            srcDir 'src'
+        }
+    }
+}
+
+processResources {
+    from('res') {
+    	into 'res/com/polydes/configurations'
+    }
+    from('icon.png') {
+        into 'com/polydes/configurations/res'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        allowInsecureProtocol true
+        url "http://www.stencyl.com/dl/maven2/releases"
+    }
+    maven {
+        allowInsecureProtocol true
+        url "http://www.stencyl.com/dl/maven2/snapshots"
+    }
+}
+
+dependencies {
+    //Stencyl and its dependencies
+    compileOnly group: 'com.stencyl',        name: 'stencyl',        version: '4.1.0-SNAPSHOT'
+    compileOnly group: 'com.stencyl',        name: 'jide-oss',       version: '3.7.11.1'
+    compileOnly group: 'org.apache.commons', name: 'commons-lang3',  version: '3.3.2'
+	compileOnly group: 'log4j',              name: 'log4j',          version: '1.2.17'
+    compileOnly group: 'commons-io',         name: 'commons-io',     version: '2.4'
+}
+
+jar {
+	from {
+		configurations.runtimeClasspath.collect { zipTree(it) }
+	}
+    manifest {
+		attributes(
+			"Extension-ID": "com.polydes.configurations",
+			"Extension-Main-Class": "com.polydes.configurations.ConfigurationsExtension",
+			"Extension-Version": version,
+			"Extension-Icon": "com/polydes/configurations/res/icon.png",
+			"Extension-Dependencies": "stencyl-4.1.0-b10638",
+			"Extension-Type": "normal",
+			"Extension-Name": "Configurations",
+			"Extension-Description": "Allows game to be configured for conditional compilation.",
+			"Extension-Author": "Justin Espedal",
+			"Extension-Website": "https://github.com/polydes",
+			"Extension-Repository": "http://www.polydes.com/repo",
+			"Extension-Internal-Version": "1"
+		)
+	}
+}
+
+tasks.register('installToolsetToWorkspace', Copy) {
+    from(tasks.named("jar"))
+	into stencylWorkspace+"/extensions"
+	rename { fileName -> "com.polydes.configurations.jar" }
+}
+
+tasks.register('installToWorkspace') {
+	dependsOn 'installToolsetToWorkspace'
+}

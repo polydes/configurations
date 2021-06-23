@@ -16,18 +16,17 @@ import com.polydes.common.nodes.DefaultBranch;
 import com.polydes.common.nodes.DefaultLeaf;
 
 import stencyl.core.lib.Game;
-import stencyl.sw.SW;
+import stencyl.core.lib.attribute.AttributeType;
+import stencyl.core.lib.attribute.AttributeTypes;
 import stencyl.sw.app.tasks.buildgame.GameBuilder;
 import stencyl.sw.editors.game.advanced.ExtensionInstance;
-import stencyl.sw.editors.snippet.designer.AttributeType;
 import stencyl.sw.editors.snippet.designer.Definition;
 import stencyl.sw.editors.snippet.designer.Definition.Category;
 import stencyl.sw.editors.snippet.designer.Definitions;
 import stencyl.sw.editors.snippet.designer.Definitions.DefinitionMap;
+import stencyl.sw.editors.snippet.designer.Definitions.OrderedDefinitionMap;
 import stencyl.sw.editors.snippet.designer.block.Block.BlockType;
 import stencyl.sw.editors.snippet.designer.block.BlockTheme;
-import stencyl.sw.editors.snippet.designer.codebuilder.CodeBuilder;
-import stencyl.sw.editors.snippet.designer.codebuilder.CodeElement;
 import stencyl.sw.editors.snippet.designer.codemap.BasicCodeMap;
 import stencyl.sw.editors.snippet.designer.dropdown.DefaultCodeConverter;
 import stencyl.sw.editors.snippet.designer.dropdown.DropdownData;
@@ -35,7 +34,7 @@ import stencyl.sw.ext.BaseExtension;
 import stencyl.sw.ext.OptionsPanel;
 import stencyl.sw.util.FileHelper;
 import stencyl.sw.util.Locations;
-import stencyl.sw.util.NotifierHashMap;
+import stencyl.sw.util.NotifierMap;
 
 public class ConfigurationsExtension extends BaseExtension
 {
@@ -80,6 +79,8 @@ public class ConfigurationsExtension extends BaseExtension
 	
 	public void addDesignModeBlocks()
 	{
+		Definitions defs = Game.getGame().getDefinitions();
+		
 		// ===== simple wrapper version
 		
 		String spec = "#if %0";
@@ -88,7 +89,7 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-wrap-if",
-			new AttributeType[] { AttributeType.BOOLEAN, AttributeType.CODE_BLOCK },
+			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.CODE_BLOCK },
 			new BasicCodeMap("#if ~\n"
 					+ "{\n"
 						+ "~\n"
@@ -97,14 +98,14 @@ public class ConfigurationsExtension extends BaseExtension
 			null,
 			spec,
 			BlockType.WRAPPER,
-			AttributeType.VOID,
+			AttributeTypes.VOID,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		// ===== simple inline version
@@ -115,19 +116,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-inline-ifelse",
-			new AttributeType[] { AttributeType.BOOLEAN, AttributeType.OBJECT, AttributeType.OBJECT },
+			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.OBJECT, AttributeTypes.OBJECT },
 			new BasicCodeMap("#if ~ ~ #else ~ #end"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeType.OBJECT,
+			AttributeTypes.OBJECT,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		// ===== chain version
@@ -138,19 +139,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-if",
-			new AttributeType[] { AttributeType.BOOLEAN },
+			new AttributeType[] { AttributeTypes.BOOLEAN },
 			new BasicCodeMap("#if ~"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeType.VOID,
+			AttributeTypes.VOID,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "#... else if %0 ...";
@@ -159,19 +160,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-elseif",
-			new AttributeType[] { AttributeType.BOOLEAN },
+			new AttributeType[] { AttributeTypes.BOOLEAN },
 			new BasicCodeMap("#elseif ~"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeType.VOID,
+			AttributeTypes.VOID,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "#... else ...";
@@ -180,19 +181,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-else",
-			new AttributeType[] { AttributeType.OBJECT },
+			new AttributeType[] { AttributeTypes.OBJECT },
 			new BasicCodeMap("#else"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeType.VOID,
+			AttributeTypes.VOID,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "#... end";
@@ -201,19 +202,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-end",
-			new AttributeType[] { AttributeType.OBJECT },
+			new AttributeType[] { AttributeTypes.OBJECT },
 			new BasicCodeMap("#end"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeType.VOID,
+			AttributeTypes.VOID,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "%0";
@@ -247,12 +248,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-platform-id",
-			new AttributeType[] { AttributeType.DROPDOWN },
+			new AttributeType[] { AttributeTypes.DROPDOWN },
 			new BasicCodeMap("~"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeType.BOOLEAN,
+			AttributeTypes.BOOLEAN,
 			null
 		);
 		blockDef.initDropdowns(new DropdownData[] {allPlatforms.copy()});
@@ -260,7 +261,7 @@ public class ConfigurationsExtension extends BaseExtension
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "%0 and %1";
@@ -269,19 +270,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-cond-and",
-			new AttributeType[] { AttributeType.BOOLEAN, AttributeType.BOOLEAN },
+			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.BOOLEAN },
 			new BasicCodeMap("(~ && ~)"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeType.BOOLEAN,
+			AttributeTypes.BOOLEAN,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "%0 or %1";
@@ -290,19 +291,19 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-cond-or",
-			new AttributeType[] { AttributeType.BOOLEAN, AttributeType.BOOLEAN },
+			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.BOOLEAN },
 			new BasicCodeMap("(~ || ~)"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeType.BOOLEAN,
+			AttributeTypes.BOOLEAN,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 		
 		spec = "not %0";
@@ -311,26 +312,26 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-cond-not",
-			new AttributeType[] { AttributeType.BOOLEAN },
+			new AttributeType[] { AttributeTypes.BOOLEAN },
 			new BasicCodeMap("!~"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeType.BOOLEAN,
+			AttributeTypes.BOOLEAN,
 			null
 		);
 		
 		blockDef.guiTemplate = spec;
 		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
 		
-		Definitions.get().put(blockDef.tag, blockDef);
+		defs.put(blockDef.tag, blockDef);
 		tagCache.put(blockDef.tag, blockDef);
 	}
 	
 	public void dispose()
 	{
 		for(String tag : tagCache.keySet())
-			Definitions.get().remove(tag);
+			Game.getGame().getDefinitions().remove(tag);
 		tagCache.clear();
 		
 		if(configurationsPage != null)
@@ -407,10 +408,10 @@ public class ConfigurationsExtension extends BaseExtension
 	{
 		configurations = new Configurations();
 		engineExtensionDefines = new HashMap<>();
-		tagCache = new DefinitionMap();
+		tagCache = new OrderedDefinitionMap();
 		
 		engineExtensionDefines.clear();
-		SW.get().getEngineExtensionManager().getExtensionBlocks().addListener(extensionUpdateListener);
+		game.getExtensionManager().getLoadedEnabledExtensions().addListener(extensionUpdateListener);
 		refreshExtensionDefinitions();
 		addDesignModeBlocks();
 		
@@ -445,7 +446,7 @@ public class ConfigurationsExtension extends BaseExtension
 	@Override
 	public void onGameClosed(Game game)
 	{
-		SW.get().getEngineExtensionManager().getExtensionBlocks().removeListener(extensionUpdateListener);
+		game.getExtensionManager().getLoadedEnabledExtensions().removeListener(extensionUpdateListener);
 		engineExtensionDefines.clear();
 		dispose();
 	}
@@ -498,12 +499,12 @@ public class ConfigurationsExtension extends BaseExtension
 	
 	private void refreshExtensionDefinitions()
 	{
-		for(ExtensionInstance inst : Game.getGame().getExtensions().values())
+		for(ExtensionInstance inst : Game.getGame().getExtensionManager().getExtensions().values())
 		{
 			String extensionID = inst.getExtensionID();
 			if(inst.isEnabled())
 			{
-				if(!engineExtensionDefines.containsKey(extensionID) && SW.get().getEngineExtensionManager().getExtensionBlocks().containsKey(extensionID))
+				if(!engineExtensionDefines.containsKey(extensionID) && inst.isAdditionalDataLoaded())
 				{
 					engineExtensionDefines.put(extensionID, new HashMap<>());
 					File extensionRoot = new File(Locations.getGameExtensionLocation(extensionID));
@@ -611,7 +612,7 @@ public class ConfigurationsExtension extends BaseExtension
 		}
 	}
 	
-	NotifierHashMap.Listener<DefinitionMap> extensionUpdateListener = event -> {
+	NotifierMap.MapListener<ExtensionInstance> extensionUpdateListener = event -> {
 		
 		//If a game is being closed, the extension blocks map will be updated after setting the game to null.
 		if(Game.noGameOpened())

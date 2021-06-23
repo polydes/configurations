@@ -139,10 +139,12 @@ public class ConfigurationsPage extends JPanel
 							else configuration.removeDefine(define.name);
 						});
 					}
+					
+					panel.finishBlockNoFill();
 				}
 			}
 			
-			panel.finishBlock();
+			//panel.finishBlock();
 
 			panel.addFinalRow(new JLabel());
 			

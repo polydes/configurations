@@ -9,9 +9,13 @@ import com.polydes.common.nodes.DefaultBranch;
 import com.polydes.common.nodes.DefaultLeaf;
 import com.polydes.common.nodes.HierarchyModel;
 import com.polydes.common.nodes.NodeUtils;
+import com.polydes.common.res.ResourceLoader;
+import com.polydes.common.res.Resources;
 
 public class Configuration
 {
+	private static final Resources res = ResourceLoader.getResources("com.polydes.configurations");
+	
 	private DefaultLeaf treeNodeWrapper;
 	
 	private String description = "";
@@ -22,6 +26,7 @@ public class Configuration
 	{
 		this.defines = new HashSet<>();
 		treeNodeWrapper = new DefaultLeaf("", this);
+		treeNodeWrapper.setIcon(res.loadIcon("games-config-options.png"));
 	}
 	
 	public DefaultLeaf getTreeNodeWrapper()

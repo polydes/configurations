@@ -41,7 +41,7 @@ public class Configurations extends HierarchyModel<DefaultLeaf, DefaultBranch> i
 			{
 				Configuration cfg = (Configuration) item.getUserData();
 				configurations.remove(cfg.getName());
-				if(activeConfiguration == cfg) activeConfiguration = null;
+				if(activeConfiguration == cfg) setActiveConfiguration(null);
 			}
 		}
 		
@@ -52,7 +52,7 @@ public class Configurations extends HierarchyModel<DefaultLeaf, DefaultBranch> i
 			{
 				Configuration cfg = (Configuration) item.getUserData();
 				configurations.put(cfg.getName(), cfg);
-				if(activeConfiguration == null) activeConfiguration = cfg;
+				if(activeConfiguration == null) setActiveConfiguration(cfg);
 			}
 		}
 	};
@@ -76,7 +76,10 @@ public class Configurations extends HierarchyModel<DefaultLeaf, DefaultBranch> i
 	
 	public void setActiveConfiguration(Configuration activeConfiguration)
 	{
+		if(this.activeConfiguration != null)
+			this.activeConfiguration.getTreeNodeWrapper().setIcon(res.loadIcon("games-config-options.png"));
 		this.activeConfiguration = activeConfiguration;
+		this.activeConfiguration.getTreeNodeWrapper().setIcon(res.loadIcon("games-config-options-active.png"));
 	}
 	
 	public Configuration getActiveConfiguration()
@@ -119,7 +122,7 @@ public class Configurations extends HierarchyModel<DefaultLeaf, DefaultBranch> i
 		if(targets.length == 1 && targets[0].getUserData() instanceof Configuration)
 		{
 			NodeAction<DefaultLeaf> markAsActiveConfig = new NodeAction<DefaultLeaf>("Make active configuration", null, leaf -> {
-				activeConfiguration = (Configuration) leaf.getUserData();
+				setActiveConfiguration((Configuration) leaf.getUserData());
 			});
 			return new ArrayList<>(Arrays.asList(markAsActiveConfig));
 		}

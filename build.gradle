@@ -64,7 +64,7 @@ jar {
 			"Extension-Name": "Configurations",
 			"Extension-Description": "Allows game to be configured for conditional compilation.",
 			"Extension-Author": "Justin Espedal",
-			"Extension-Website": "https://github.com/polydes",
+			"Extension-Website": "http://www.polydes.com/repo/toolset/com.polydes.configurations",
 			"Extension-Repository": "http://www.polydes.com/repo",
 			"Extension-Internal-Version": "1"
 		)

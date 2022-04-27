@@ -32,22 +32,21 @@ processResources {
 repositories {
     mavenCentral()
     maven {
-        allowInsecureProtocol true
-        url "http://www.stencyl.com/dl/maven2/releases"
+        url "https://www.stencyl.com/dl/maven2/releases"
     }
     maven {
-        allowInsecureProtocol true
-        url "http://www.stencyl.com/dl/maven2/snapshots"
+        url "https://www.stencyl.com/dl/maven2/snapshots"
     }
 }
 
 dependencies {
-    //Stencyl and its dependencies
+	//Stencyl and its dependencies
+    implementation enforcedPlatform('com.stencyl:stencyl-platform:4.1.0-SNAPSHOT')
     compileOnly group: 'com.stencyl',        name: 'stencyl',        version: '4.1.0-SNAPSHOT'
-    compileOnly group: 'com.stencyl',        name: 'jide-oss',       version: '3.7.11.1'
-    compileOnly group: 'org.apache.commons', name: 'commons-lang3',  version: '3.3.2'
-	compileOnly group: 'log4j',              name: 'log4j',          version: '1.2.17'
-    compileOnly group: 'commons-io',         name: 'commons-io',     version: '2.4'
+    compileOnly group: 'com.stencyl',        name: 'jide-oss'
+    compileOnly group: 'org.apache.commons', name: 'commons-lang3'
+	compileOnly group: 'log4j',              name: 'log4j'
+    compileOnly group: 'commons-io',         name: 'commons-io'
 }
 
 jar {

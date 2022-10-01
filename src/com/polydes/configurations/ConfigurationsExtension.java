@@ -34,7 +34,7 @@ import stencyl.sw.ext.BaseExtension;
 import stencyl.sw.ext.OptionsPanel;
 import stencyl.sw.util.FileHelper;
 import stencyl.sw.util.Locations;
-import stencyl.sw.util.NotifierMap;
+import stencyl.util.NotifierMap;
 
 public class ConfigurationsExtension extends BaseExtension
 {

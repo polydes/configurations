@@ -5,7 +5,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(16))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -59,7 +59,7 @@ jar {
 			"Extension-Main-Class": "com.polydes.configurations.ConfigurationsExtension",
 			"Extension-Version": version,
 			"Extension-Icon": "com/polydes/configurations/res/icon.png",
-			"Extension-Dependencies": "stencyl-4.1.0-b10638",
+			"Extension-Dependencies": "stencyl-4.1.0-b10938",
 			"Extension-Type": "normal",
 			"Extension-Name": "Configurations",
 			"Extension-Description": "Allows game to be configured for conditional compilation.",

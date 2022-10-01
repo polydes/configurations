@@ -482,6 +482,12 @@ public class ConfigurationsExtension extends BaseExtension
 	@Override
 	public void onGameSave(Game game)
 	{
+		//XXX: This could be true for the initial game save,
+		//before the game has been opened for the first time.
+		//This should probably be considered a bug in Stencyl's
+		//active game lifecycle.
+		if(configurations == null) return;
+
 		String dataLocation = Locations.getExtensionGameDataLocation(game, getManifest().id);
 		new File(dataLocation).mkdirs();
 		

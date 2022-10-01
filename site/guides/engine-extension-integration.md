@@ -62,6 +62,20 @@ The existing `include.xml` file:
 </project>
 ```
 
+Additionally, in order to allow the `coolsite` extension to continue to work normally even without the configurations extension enabled, we can check for the `configurations` define, which marks the presense of the configurations extension, and automatically define `coolsite` if it's missing.
+
+`include.xml`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <define name="coolsite" unless="configurations" />
+  <section if="coolsite">
+    <source path="src" />
+    <dependency name="https://api.coolsite.com/coolsite-api.js" />
+  </section>
+</project>
+```
+
 > 📝 **Note:** this technique only works if the source code for the extension is not found at the top level of the engine extension. For example, if your engine extension looks like this, the source code will be automatically included regardless of what's specified in `include.xml`:
 > 
 > ```

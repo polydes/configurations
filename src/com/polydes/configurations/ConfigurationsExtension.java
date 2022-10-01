@@ -2,7 +2,9 @@ package com.polydes.configurations;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JPanel;
@@ -516,13 +518,18 @@ public class ConfigurationsExtension extends BaseExtension
 	{
 		if(configurations.getActiveConfiguration() != null)
 		{
-			String[] cliAdditions = configurations.getActiveConfiguration().defines.stream()
-					.map(s -> "-D" + s).toArray(String[]::new);
-			
+			List<String> cliAdditions = new ArrayList<>();
+
+			cliAdditions.add("-D" + "configurations");
+			for(String define : configurations.getActiveConfiguration().defines)
+			{
+				cliAdditions.add("-D" + define);
+			}
+
 			GameBuilder builder = GameBuilderHelper.getRunningBuilder();
 			if(builder != null)
 			{
-				GameBuilderHelper.appendCommandLineArguments(builder, cliAdditions);
+				GameBuilderHelper.appendCommandLineArguments(builder, cliAdditions.toArray(String[]::new));
 			}
 			else
 			{

@@ -406,6 +406,20 @@ public class ConfigurationsExtension extends BaseExtension
 	@Override
 	public void onGameOpened(Game game)
 	{
+		enableForGame(game);
+	}
+
+	@Override
+	public void onEnable()
+	{
+		if(!Game.noGameOpened())
+		{
+			enableForGame(Game.getGame());
+		}
+	}
+
+	private void enableForGame(Game game)
+	{
 		configurations = new Configurations();
 		engineExtensionDefines = new HashMap<>();
 		tagCache = new OrderedDefinitionMap();
@@ -445,6 +459,20 @@ public class ConfigurationsExtension extends BaseExtension
 	
 	@Override
 	public void onGameClosed(Game game)
+	{
+		disableForGame(game);
+	}
+
+	@Override
+	public void onDisable()
+	{
+		if(!Game.noGameOpened())
+		{
+			disableForGame(Game.getGame());
+		}
+	}
+
+	private void disableForGame(Game game)
 	{
 		game.getExtensionManager().getLoadedEnabledExtensions().removeListener(extensionUpdateListener);
 		engineExtensionDefines.clear();

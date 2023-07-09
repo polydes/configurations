@@ -1,17 +1,15 @@
 package com.polydes.configurations;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 
-import javax.swing.JToggleButton;
+import javax.swing.*;
 
-import com.polydes.common.res.ResourceLoader;
-import com.polydes.common.res.Resources;
+import stencyl.app.ext.res.AppResourceLoader;
+import stencyl.app.ext.res.AppResources;
 
 public class ToggleSwitch extends JToggleButton
 {
-	private static final Resources res = ResourceLoader.getResources("com.polydes.configurations");
+	private static final AppResources res = AppResourceLoader.getResources("com.polydes.configurations");
 	
 	private static final Image enabledIcon = res.loadIcon("switch-enabled.png").getImage();
 	private static final Image disabledIcon = res.loadIcon("switch-disabled.png").getImage();

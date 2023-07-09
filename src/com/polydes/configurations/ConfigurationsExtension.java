@@ -2,43 +2,44 @@ package com.polydes.configurations;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.polydes.common.io.XML;
-import com.polydes.common.nodes.DefaultBranch;
-import com.polydes.common.nodes.DefaultLeaf;
+import stencyl.app.ext.PageAddon;
+import stencyl.core.api.fs.Locations;
+import stencyl.core.api.pnodes.DefaultBranch;
+import stencyl.core.api.pnodes.DefaultLeaf;
+import stencyl.core.api.struct.NotifierMap;
+import stencyl.core.ext.GameExtension;
+import stencyl.core.ext.engine.ExtensionInstanceManager;
+import stencyl.core.ext.engine.ExtensionInstanceManager.FormatUpdateSubmitter;
+import stencyl.core.io.FileHelper;
+import stencyl.core.io.XmlHelper;
+import stencyl.core.lib.ProjectManager;
+import stencyl.core.lib.code.attribute.AttributeType;
+import stencyl.core.lib.code.design.Definition;
+import stencyl.core.lib.code.design.Definition.Category;
+import stencyl.core.lib.code.design.block.BlockType;
+import stencyl.core.lib.code.gen.codemap.BasicCodeMap;
+import stencyl.sw.app.center.GameLibrary;
+import stencyl.sw.app.editors.snippet.designer.block.BlockTheme;
+import stencyl.sw.app.editors.snippet.designer.dropdown.DefaultCodeConverter;
+import stencyl.sw.app.editors.snippet.designer.dropdown.DropdownData;
+import stencyl.sw.app.ext.SWExtensionInstance;
+import stencyl.sw.core.lib.attribute.HaxeAttributeTypes;
+import stencyl.sw.core.lib.game.Game;
+import stencyl.sw.core.lib.snippet.designer.Definitions.DefinitionMap;
+import stencyl.sw.core.lib.snippet.designer.Definitions.OrderedDefinitionMap;
 
-import stencyl.core.lib.Game;
-import stencyl.core.lib.attribute.AttributeType;
-import stencyl.core.lib.attribute.AttributeTypes;
-import stencyl.sw.app.tasks.buildgame.GameBuilder;
-import stencyl.sw.editors.game.advanced.ExtensionInstance;
-import stencyl.sw.editors.snippet.designer.Definition;
-import stencyl.sw.editors.snippet.designer.Definition.Category;
-import stencyl.sw.editors.snippet.designer.Definitions;
-import stencyl.sw.editors.snippet.designer.Definitions.DefinitionMap;
-import stencyl.sw.editors.snippet.designer.Definitions.OrderedDefinitionMap;
-import stencyl.sw.editors.snippet.designer.block.Block.BlockType;
-import stencyl.sw.editors.snippet.designer.block.BlockTheme;
-import stencyl.sw.editors.snippet.designer.codemap.BasicCodeMap;
-import stencyl.sw.editors.snippet.designer.dropdown.DefaultCodeConverter;
-import stencyl.sw.editors.snippet.designer.dropdown.DropdownData;
-import stencyl.sw.ext.BaseExtension;
-import stencyl.sw.ext.OptionsPanel;
-import stencyl.sw.util.FileHelper;
-import stencyl.sw.util.Locations;
-import stencyl.util.NotifierMap;
-
-public class ConfigurationsExtension extends BaseExtension
+public class ConfigurationsExtension extends GameExtension
 {
 	private static final Logger log = Logger.getLogger(ConfigurationsExtension.class);
 	
@@ -56,32 +57,75 @@ public class ConfigurationsExtension extends BaseExtension
 	{
 		return engineExtensionDefines;
 	}
-	
-	/*
-	 * Happens when StencylWorks launches. 
-	 * 
-	 * Avoid doing anything time-intensive in here, or it will
-	 * slow down launch.
-	 */
+
 	@Override
-	public void onStartup()
+	public void updateFromVersion(int fromVersion, FormatUpdateSubmitter formatUpdateQueue)
 	{
-		super.onStartup();
 		
-		isInMenu = false;
-		isInGameCenter = true;
-		gameCenterName = "Build Configurations";
 	}
-	
+
 	@Override
-	public DefinitionMap getDesignModeBlocks()
+	public void onLoad()
 	{
-		return tagCache;
+		((SWExtensionInstance) owner()).setAddon(GameLibrary.DASHBOARD_SIDEBAR_PAGE_ADDONS, (PageAddon) this::onGameCenterActivate);
+
+		configurations = new Configurations();
+		engineExtensionDefines = new HashMap<>();
+		tagCache = new OrderedDefinitionMap();
+
+		engineExtensionDefines.clear();
+		((Game) getProject()).getExtensionManager().getLoadedEnabledExtensions().addListener(extensionUpdateListener);
+		refreshExtensionDefinitions();
+		addDesignModeBlocks();
+
+		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getManifest().id);
+		File configXml = new File(dataLocation, "configurations.xml");
+		if(configXml.exists())
+		{
+			try
+			{
+				Element configurationsXml = FileHelper.readXMLFromFile(dataLocation + "configurations.xml").getDocumentElement();
+				loadConfigurations(configurationsXml, configurations.getRootBranch());
+				String activeConfigurationName = configurationsXml.getAttribute("activeConfiguration");
+				configurations.setActiveConfiguration(configurations.getConfiguration(activeConfigurationName));
+			}
+			catch (IOException e)
+			{
+				log.error(e.getMessage(), e);
+			}
+		}
+		else
+		{
+			Configuration defaultConfiguration = new Configuration();
+			defaultConfiguration.setName("Default");
+			defaultConfiguration.setDescription("Default game configuration.");
+
+			configurations.getRootBranch().addItem(defaultConfiguration.getTreeNodeWrapper());
+		}
 	}
-	
+
+	@Override
+	public void onUnload()
+	{
+		((Game) getProject()).getExtensionManager().getLoadedEnabledExtensions().removeListener(extensionUpdateListener);
+		engineExtensionDefines.clear();
+		
+		for(String tag : tagCache.keySet())
+			((Game) getProject()).getDefinitions().remove(tag);
+		tagCache.clear();
+
+		if(configurationsPage != null)
+			configurationsPage.dispose();
+
+		configurations = null;
+		engineExtensionDefines = null;
+		tagCache = null;
+		configurationsPage = null;
+	}
+
 	public void addDesignModeBlocks()
 	{
-		Definitions defs = Game.getGame().getDefinitions();
+		DefinitionMap defs = ((SWExtensionInstance) owner()).getBlocks();
 		
 		// ===== simple wrapper version
 		
@@ -91,7 +135,7 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-wrap-if",
-			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.CODE_BLOCK },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.CODE_BLOCK },
 			new BasicCodeMap("#if ~\n"
 					+ "{\n"
 						+ "~\n"
@@ -100,7 +144,7 @@ public class ConfigurationsExtension extends BaseExtension
 			null,
 			spec,
 			BlockType.WRAPPER,
-			AttributeTypes.VOID,
+			HaxeAttributeTypes.VOID,
 			null
 		);
 		
@@ -118,12 +162,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-inline-ifelse",
-			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.OBJECT, AttributeTypes.OBJECT },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.OBJECT, HaxeAttributeTypes.OBJECT },
 			new BasicCodeMap("#if ~ ~ #else ~ #end"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeTypes.OBJECT,
+			HaxeAttributeTypes.OBJECT,
 			null
 		);
 		
@@ -141,12 +185,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-if",
-			new AttributeType[] { AttributeTypes.BOOLEAN },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN },
 			new BasicCodeMap("#if ~"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeTypes.VOID,
+			HaxeAttributeTypes.VOID,
 			null
 		);
 		
@@ -162,12 +206,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-elseif",
-			new AttributeType[] { AttributeTypes.BOOLEAN },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN },
 			new BasicCodeMap("#elseif ~"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeTypes.VOID,
+			HaxeAttributeTypes.VOID,
 			null
 		);
 		
@@ -183,12 +227,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-else",
-			new AttributeType[] { AttributeTypes.OBJECT },
+			new AttributeType[] { HaxeAttributeTypes.OBJECT },
 			new BasicCodeMap("#else"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeTypes.VOID,
+			HaxeAttributeTypes.VOID,
 			null
 		);
 		
@@ -204,12 +248,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-chain-end",
-			new AttributeType[] { AttributeTypes.OBJECT },
+			new AttributeType[] { HaxeAttributeTypes.OBJECT },
 			new BasicCodeMap("#end"),
 			null,
 			spec,
 			BlockType.ACTION,
-			AttributeTypes.VOID,
+			HaxeAttributeTypes.VOID,
 			null
 		);
 		
@@ -250,12 +294,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-platform-id",
-			new AttributeType[] { AttributeTypes.DROPDOWN },
+			new AttributeType[] { HaxeAttributeTypes.DROPDOWN },
 			new BasicCodeMap("~"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeTypes.BOOLEAN,
+			HaxeAttributeTypes.BOOLEAN,
 			null
 		);
 		blockDef.initDropdowns(new DropdownData[] {allPlatforms.copy()});
@@ -272,12 +316,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-cond-and",
-			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.BOOLEAN },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.BOOLEAN },
 			new BasicCodeMap("(~ && ~)"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeTypes.BOOLEAN,
+			HaxeAttributeTypes.BOOLEAN,
 			null
 		);
 		
@@ -293,12 +337,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-cond-or",
-			new AttributeType[] { AttributeTypes.BOOLEAN, AttributeTypes.BOOLEAN },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.BOOLEAN },
 			new BasicCodeMap("(~ || ~)"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeTypes.BOOLEAN,
+			HaxeAttributeTypes.BOOLEAN,
 			null
 		);
 		
@@ -314,12 +358,12 @@ public class ConfigurationsExtension extends BaseExtension
 		(
 			Category.CUSTOM,
 			"def-cond-not",
-			new AttributeType[] { AttributeTypes.BOOLEAN },
+			new AttributeType[] { HaxeAttributeTypes.BOOLEAN },
 			new BasicCodeMap("!~"),
 			null,
 			spec,
 			BlockType.NORMAL,
-			AttributeTypes.BOOLEAN,
+			HaxeAttributeTypes.BOOLEAN,
 			null
 		);
 		
@@ -330,167 +374,24 @@ public class ConfigurationsExtension extends BaseExtension
 		tagCache.put(blockDef.tag, blockDef);
 	}
 	
-	public void dispose()
-	{
-		for(String tag : tagCache.keySet())
-			Game.getGame().getDefinitions().remove(tag);
-		tagCache.clear();
-		
-		if(configurationsPage != null)
-			configurationsPage.dispose();
-		
-		configurations = null;
-		engineExtensionDefines = null;
-		tagCache = null;
-		configurationsPage = null;
-	}
-	
-	/*
-	 * Happens when the extension is told to display.
-	 * 
-	 * May happen multiple times during the course of the app. 
-	 * 
-	 * A good way to handle this is to make your extension a singleton.
-	 */
-	@Override
-	public void onActivate()
-	{
-	}
-	
-	/*
-	 * Happens when StencylWorks closes.
-	 *  
-	 * Usually used to save things out.
-	 */
-	@Override
-	public void onDestroy()
-	{
-	}
-	
-	@Override
-	protected boolean hasOptions()
-	{
-		return false;
-	}
-	
-	@Override
-	public OptionsPanel onOptions()
-	{
-		return null;
-	}
-	
-	@Override
 	public JPanel onGameCenterActivate()
 	{
 		if(configurationsPage == null)
 			configurationsPage = new ConfigurationsPage(this);
 		return configurationsPage;
 	}
-	
-	/*
-	 * Happens when the extension is first installed.
-	 */
-	@Override
-	public void onInstall()
-	{
-	}
-	
-	/*
-	 * Happens when the extension is uninstalled.
-	 * 
-	 * Clean up files.
-	 */
-	@Override
-	public void onUninstall()
-	{
-	}
 
 	@Override
-	public void onGameOpened(Game game)
+	protected void onSave()
 	{
-		enableForGame(game);
-	}
-
-	@Override
-	public void onEnable()
-	{
-		if(!Game.noGameOpened())
-		{
-			enableForGame(Game.getGame());
-		}
-	}
-
-	private void enableForGame(Game game)
-	{
-		configurations = new Configurations();
-		engineExtensionDefines = new HashMap<>();
-		tagCache = new OrderedDefinitionMap();
-		
-		engineExtensionDefines.clear();
-		game.getExtensionManager().getLoadedEnabledExtensions().addListener(extensionUpdateListener);
-		refreshExtensionDefinitions();
-		addDesignModeBlocks();
-		
-		String dataLocation = Locations.getExtensionGameDataLocation(game, getManifest().id);
-		File configXml = new File(dataLocation, "configurations.xml");
-		if(configXml.exists())
-		{
-			try
-			{
-				Element configurationsXml = FileHelper.readXMLFromFile(dataLocation + "configurations.xml").getDocumentElement();
-				loadConfigurations(configurationsXml, configurations.getRootBranch());
-				String activeConfigurationName = configurationsXml.getAttribute("activeConfiguration");
-				configurations.setActiveConfiguration(configurations.getConfiguration(activeConfigurationName));
-				configurations.getRootBranch().setDirty(false);
-			}
-			catch (IOException e)
-			{
-				log.error(e.getMessage(), e);
-			}
-		}
-		else
-		{
-			Configuration defaultConfiguration = new Configuration();
-			defaultConfiguration.setName("Default");
-			defaultConfiguration.setDescription("Default game configuration.");
-			
-			configurations.getRootBranch().addItem(defaultConfiguration.getTreeNodeWrapper());
-			configurations.getRootBranch().setDirty(false);
-		}
-	}
-	
-	@Override
-	public void onGameClosed(Game game)
-	{
-		disableForGame(game);
-	}
-
-	@Override
-	public void onDisable()
-	{
-		if(!Game.noGameOpened())
-		{
-			disableForGame(Game.getGame());
-		}
-	}
-
-	private void disableForGame(Game game)
-	{
-		game.getExtensionManager().getLoadedEnabledExtensions().removeListener(extensionUpdateListener);
-		engineExtensionDefines.clear();
-		dispose();
-	}
-
-	@Override
-	public void onGameSave(Game game)
-	{
+		super.onSave();
 		//XXX: This could be true for the initial game save,
 		//before the game has been opened for the first time.
 		//This should probably be considered a bug in Stencyl's
 		//active game lifecycle.
 		if(configurations == null) return;
 
-		String dataLocation = Locations.getExtensionGameDataLocation(game, getManifest().id);
+		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getManifest().id);
 		new File(dataLocation).mkdirs();
 		
 		Document doc = FileHelper.newDocument();
@@ -512,68 +413,56 @@ public class ConfigurationsExtension extends BaseExtension
 			log.error(e.getMessage(), e);
 		}
 	}
-	
+
 	@Override
-	public void onGameBuild(Game game)
+	public void addToBuildCommand(List<String> arr)
 	{
 		if(configurations.getActiveConfiguration() != null)
 		{
-			List<String> cliAdditions = new ArrayList<>();
-
-			cliAdditions.add("-D" + "configurations");
+			arr.add("-D" + "configurations");
 			for(String define : configurations.getActiveConfiguration().defines)
 			{
-				cliAdditions.add("-D" + define);
-			}
-
-			GameBuilder builder = GameBuilderHelper.getRunningBuilder();
-			if(builder != null)
-			{
-				GameBuilderHelper.appendCommandLineArguments(builder, cliAdditions.toArray(String[]::new));
-			}
-			else
-			{
-				log.error("No GameBuilder found");
+				arr.add("-D" + define);
 			}
 		}
 	}
 	
 	private void refreshExtensionDefinitions()
 	{
-		for(ExtensionInstance inst : Game.getGame().getExtensionManager().getExtensions().values())
+		ExtensionInstanceManager<SWExtensionInstance> extManager = getProject().module(ExtensionInstanceManager.class);
+		var loadedEnabledExtensions = extManager.getLoadedEnabledExtensions();
+		
+		var idsToKeep = new HashSet<>(loadedEnabledExtensions.keySet());
+		engineExtensionDefines.keySet().removeIf(key -> !idsToKeep.contains(key));
+		
+		for(SWExtensionInstance inst : loadedEnabledExtensions.values())
 		{
 			String extensionID = inst.getExtensionID();
-			if(inst.isEnabled())
+			if(!engineExtensionDefines.containsKey(extensionID))
 			{
-				if(!engineExtensionDefines.containsKey(extensionID) && inst.isAdditionalDataLoaded())
+				engineExtensionDefines.put(extensionID, new HashMap<>());
+				File extensionRoot = new File(Locations.getGameExtensionLocation(extensionID));
+				File definesXml = new File(extensionRoot, "defines.xml");
+				if(definesXml.exists())
 				{
-					engineExtensionDefines.put(extensionID, new HashMap<>());
-					File extensionRoot = new File(Locations.getGameExtensionLocation(extensionID));
-					File definesXml = new File(extensionRoot, "defines.xml");
-					if(definesXml.exists())
+					try
 					{
-						try
-						{
-							Element e = FileHelper.readXMLFromFile(definesXml).getDocumentElement();
-							loadDefines(extensionID, e);
-						}
-						catch(IOException e)
-						{
-							log.error(e.getMessage(), e);
-						}
+						Element e = FileHelper.readXMLFromFile(definesXml).getDocumentElement();
+						loadDefines(extensionID, e);
+					}
+					catch(IOException e)
+					{
+						log.error(e.getMessage(), e);
 					}
 				}
-			}
-			else
-			{
-				engineExtensionDefines.remove(extensionID);
 			}
 		}
 	}
 	
 	private void loadConfigurations(Element configurations, DefaultBranch addToBranch)
 	{
-		for(Element e : XML.children(configurations))
+		addToBranch.markAsLoading(true);
+		for(Element e : XmlHelper.children(configurations))
 		{
 			if(e.getTagName().equals("section"))
 			{
@@ -584,14 +473,15 @@ public class ConfigurationsExtension extends BaseExtension
 			else if(e.getTagName().equals("configuration"))
 			{
 				Configuration cfg = new Configuration();
+				cfg.getTreeNodeWrapper().markAsLoading(true);
 				
 				cfg.setName(e.getAttribute("name"));
 				cfg.setDescription(e.getAttribute("description"));
 				
-				Element defines = XML.child(e, "defines");
+				Element defines = XmlHelper.child(e, "defines");
 				if(defines != null)
 				{
-					for(Element defE : XML.children(defines))
+					for(Element defE : XmlHelper.children(defines))
 					{
 						if(defE.getTagName().equals("define"))
 						{
@@ -600,9 +490,11 @@ public class ConfigurationsExtension extends BaseExtension
 					}
 				}
 				
+				cfg.getTreeNodeWrapper().markAsLoading(false);
 				addToBranch.addItem(cfg.getTreeNodeWrapper());
 			}
 		}
+		addToBranch.markAsLoading(false);
 	}
 	
 	private void saveConfigurations(Document doc, Element addToElement, DefaultBranch configurations)
@@ -639,7 +531,7 @@ public class ConfigurationsExtension extends BaseExtension
 	
 	private void loadDefines(String extensionID, Element defines)
 	{
-		for(Element e : XML.children(defines))
+		for(Element e : XmlHelper.children(defines))
 		{
 			if(e.getTagName().equals("define"))
 			{
@@ -653,10 +545,10 @@ public class ConfigurationsExtension extends BaseExtension
 		}
 	}
 	
-	NotifierMap.MapListener<ExtensionInstance> extensionUpdateListener = event -> {
+	NotifierMap.MapListener<SWExtensionInstance> extensionUpdateListener = event -> {
 		
 		//If a game is being closed, the extension blocks map will be updated after setting the game to null.
-		if(Game.noGameOpened())
+		if(ProjectManager.noProjectOpened())
 		{
 			engineExtensionDefines.clear();
 			return;

@@ -5,9 +5,18 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(20))
     }
 }
+
+tasks.withType(JavaCompile).each {
+	it.options.compilerArgs.add('--enable-preview')
+}
+
+//building an artifact using a local-only build artifact of Stencyl
+var localBuild = project.hasProperty("local_build")
+//developing as a submodule of Stencyl
+var localDev = project.hasProperty("local_dev")
 
 group = 'com.polydes'
 version = rootProject.file('version.txt').text.trim()
@@ -30,20 +39,29 @@ processResources {
 }
 
 repositories {
-    mavenCentral()
-    maven {
-        url "https://www.stencyl.com/dl/maven2/releases"
-    }
-    maven {
-        url "https://www.stencyl.com/dl/maven2/snapshots"
-    }
+	if(localBuild) {
+		mavenLocal()
+	}
+	mavenCentral()
+	maven {
+		url "https://www.stencyl.com/dl/maven2/releases"
+	}
+	maven {
+		url "https://www.stencyl.com/dl/maven2/snapshots"
+	}
 }
 
 dependencies {
 	//Stencyl and its dependencies
     implementation enforcedPlatform('com.stencyl:stencyl-platform:4.1.0-SNAPSHOT')
-    compileOnly group: 'com.stencyl',        name: 'stencyl',        version: '4.1.0-SNAPSHOT'
-    compileOnly group: 'com.stencyl',        name: 'jide-oss'
+	if(localDev) {
+		compileOnly project(":")
+		compileOnly project(":stencyl-v5-core")
+		compileOnly project(":stencyl-v5-toolset")
+	} else {
+		compileOnly group: 'com.stencyl', name: 'stencyl', version: '4.1.0-SNAPSHOT'
+	}
+	compileOnly group: 'com.stencyl',        name: 'jide-oss'
     compileOnly group: 'org.apache.commons', name: 'commons-lang3'
 	compileOnly group: 'log4j',              name: 'log4j'
     compileOnly group: 'commons-io',         name: 'commons-io'
@@ -59,8 +77,8 @@ jar {
 			"Extension-Main-Class": "com.polydes.configurations.ConfigurationsExtension",
 			"Extension-Version": version,
 			"Extension-Icon": "com/polydes/configurations/res/icon.png",
-			"Extension-Dependencies": "stencyl-4.1.0-b11118",
-			"Extension-Type": "normal",
+			"Extension-Dependencies": "",
+			"Extension-Type": "game",
 			"Extension-Name": "Configurations",
 			"Extension-Description": "Allows game to be configured for conditional compilation.",
 			"Extension-Author": "Justin Espedal",
@@ -71,12 +89,15 @@ jar {
 	}
 }
 
-tasks.register('installToolsetToWorkspace', Copy) {
-    from(tasks.named("jar"))
-	into stencylWorkspace+"/extensions"
-	rename { fileName -> "com.polydes.configurations.jar" }
+tasks.register('buildForEngine', Copy) {
+	from(tasks.named("jar")) {
+		rename { fileName -> "toolset-extension.jar" }
+	}
+	into "engine"
 }
 
-tasks.register('installToWorkspace') {
-	dependsOn 'installToolsetToWorkspace'
+tasks.register('installToWorkspace', Sync) {
+	dependsOn(":buildForEngine")
+	from('engine')
+	into stencylWorkspace+"/engine-extensions/com.polydes.configurations"
 }

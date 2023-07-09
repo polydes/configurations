@@ -108,8 +108,8 @@ If the engine extension has blocks that rely on the `coolsite` integration, we w
 | tag         | Arbitrary, but it should be unique among all blocks across all extensions. |
 | spec        | Since this is the human readable label on the block, this can be anything. |
 | code        | Should be exactly equal to the id of the define. |
-| type        | "normal" |
-| returns     | "boolean" |
+| type        | `normal` |
+| returns     | `boolean` |
 
 In design mode, you can use the `# if <coolsite is enabled>` block to include coolsite-related code only if it's defined.
 

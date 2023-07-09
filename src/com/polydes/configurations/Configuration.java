@@ -5,28 +5,23 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import com.polydes.common.nodes.DefaultBranch;
-import com.polydes.common.nodes.DefaultLeaf;
-import com.polydes.common.nodes.HierarchyModel;
-import com.polydes.common.nodes.NodeUtils;
-import com.polydes.common.res.ResourceLoader;
-import com.polydes.common.res.Resources;
+import stencyl.core.api.pnodes.DefaultBranch;
+import stencyl.core.api.pnodes.DefaultLeaf;
+import stencyl.core.api.pnodes.HierarchyModel;
+import stencyl.core.api.pnodes.NodeUtils;
 
 public class Configuration
 {
-	private static final Resources res = ResourceLoader.getResources("com.polydes.configurations");
-	
 	private DefaultLeaf treeNodeWrapper;
 	
 	private String description = "";
 	
 	public final Set<String> defines;
-
+	
 	public Configuration()
 	{
 		this.defines = new HashSet<>();
 		treeNodeWrapper = new DefaultLeaf("", this);
-		treeNodeWrapper.setIcon(res.loadIcon("games-config-options.png"));
 	}
 	
 	public DefaultLeaf getTreeNodeWrapper()
@@ -41,6 +36,7 @@ public class Configuration
 
 	public void setName(String name)
 	{
+		//enforcing names that don't conflict with any other configuration name within the project
 		DefaultBranch root = treeNodeWrapper.getParent() == null ? null : NodeUtils.getRoot(treeNodeWrapper);
 		if(HierarchyModel.rootModels.containsKey(root))
 		{

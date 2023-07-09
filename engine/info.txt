@@ -1,0 +1,8 @@
+name=Configurations
+description=Allows game to be configured for conditional compilation.
+author=Justin Espedal
+website=http://www.polydes.com/repo/engine/com.polydes.configurations
+version=0.0.4
+compatibility=all
+dependencies=stencylbuild-11582
+repository=http://www.polydes.com/repo

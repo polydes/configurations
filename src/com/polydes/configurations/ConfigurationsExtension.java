@@ -19,6 +19,7 @@ import stencyl.core.api.pnodes.DefaultBranch;
 import stencyl.core.api.pnodes.DefaultLeaf;
 import stencyl.core.api.struct.NotifierMap;
 import stencyl.core.ext.GameExtension;
+import stencyl.core.ext.engine.ExtensionInstance;
 import stencyl.core.ext.engine.ExtensionInstanceManager;
 import stencyl.core.ext.engine.ExtensionInstanceManager.FormatUpdateSubmitter;
 import stencyl.core.io.FileHelper;
@@ -429,13 +430,13 @@ public class ConfigurationsExtension extends GameExtension
 	
 	private void refreshExtensionDefinitions()
 	{
-		ExtensionInstanceManager<SWExtensionInstance> extManager = getProject().module(ExtensionInstanceManager.class);
+		ExtensionInstanceManager<? extends ExtensionInstance> extManager = getProject().getExtensionManager();
 		var loadedEnabledExtensions = extManager.getLoadedEnabledExtensions();
 		
 		var idsToKeep = new HashSet<>(loadedEnabledExtensions.keySet());
 		engineExtensionDefines.keySet().removeIf(key -> !idsToKeep.contains(key));
 		
-		for(SWExtensionInstance inst : loadedEnabledExtensions.values())
+		for(ExtensionInstance inst : loadedEnabledExtensions.values())
 		{
 			String extensionID = inst.getExtensionID();
 			if(!engineExtensionDefines.containsKey(extensionID))

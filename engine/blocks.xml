@@ -1,3 +1,151 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <blocks>
+
+	<!-- Simple wrapper version -->
+	<block
+		tag="def-wrap-if"
+		spec="#if %0"
+		code="#if #{0}&#10;{&#10;#{1}&#10;}&#10;#end"
+		type="wrapper"
+		color="charcoal"
+		returns="void">
+		<fields>
+			<boolean order="0" />
+			<code-block order="1" />
+		</fields>
+	</block>
+		
+	<!-- simple inline version -->
+
+	<block
+		tag="def-inline-ifelse"
+		spec="#if %0 %1 else %2"
+		code="#if #{0} #{1} #else #{2} #end"
+		type="normal"
+		color="charcoal"
+		returns="anything">
+		<fields>
+			<boolean order="0" />
+			<anything order="1" />
+			<anything order="2" />
+		</fields>
+	</block>
+
+	<!-- chain version -->
+
+	<block
+		tag="def-chain-if"
+		spec="#if %0 ..."
+		code="#if #{0}"
+		type="action"
+		color="charcoal"
+		returns="void">
+		<fields>
+			<boolean order="0" />
+		</fields>
+	</block>
+
+	<block
+		tag="def-chain-elseif"
+		spec="#... else if %0 ..."
+		code="#elseif #{0}"
+		type="action"
+		color="charcoal"
+		returns="void">
+		<fields>
+			<boolean order="0" />
+		</fields>
+	</block>
+
+	<block
+		tag="def-chain-else"
+		spec="#... else ..."
+		code="#else"
+		type="action"
+		color="charcoal"
+		returns="void">
+		<fields>
+		</fields>
+	</block>
+		
+	<block
+		tag="def-chain-end"
+		spec="#... end"
+		code="#end"
+		type="action"
+		color="charcoal"
+		returns="void">
+		<fields>
+		</fields>
+	</block>
+
+	<!-- copy of builtin platforms -->
+	
+	<dropdown id="allPlatforms">
+        <choices>
+            <c text="flash" code="flash" />
+            <c text="html5" code="html5" />
+            <c text="desktop" code="desktop" />
+            <c text="ios" code="ios" />
+            <c text="android" code="android" />
+            <c text="web" code="(flash || html5)" />
+            <c text="mobile" code="mobile" />
+            <c text="windows" code="windows" />
+            <c text="macos" code="mac" />
+            <c text="linux" code="linux" />
+        </choices>
+    </dropdown>
+
+	<block
+		tag="def-platform-id"
+		spec="%0"
+		code="#{0}"
+		type="normal"
+		color="charcoal"
+		returns="boolean">
+		<fields>
+			<dropdown order="0" id="allPlatforms" />
+		</fields>
+	</block>
+
+	<!-- logic -->
+
+	<block
+		tag="def-cond-and"
+		spec="%0 and %1"
+		code="(#{0} &amp;&amp; #{1})"
+		type="normal"
+		color="charcoal"
+		returns="boolean">
+		<fields>
+			<boolean order="0" />
+			<boolean order="1" />
+		</fields>
+	</block>
+
+	<block
+		tag="def-cond-or"
+		spec="%0 or %1"
+		code="(#{0} || #{1})"
+		type="normal"
+		color="charcoal"
+		returns="boolean">
+		<fields>
+			<boolean order="0" />
+			<boolean order="1" />
+		</fields>
+	</block>
+
+	<block
+		tag="def-cond-not"
+		spec="not %0"
+		code="!#{0}"
+		type="normal"
+		color="charcoal"
+		returns="boolean">
+		<fields>
+			<boolean order="0" />
+		</fields>
+	</block>
+
 </blocks>

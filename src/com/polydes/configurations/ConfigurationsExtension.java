@@ -25,20 +25,9 @@ import stencyl.core.ext.engine.ExtensionInstanceManager.FormatUpdateSubmitter;
 import stencyl.core.io.FileHelper;
 import stencyl.core.io.XmlHelper;
 import stencyl.core.lib.ProjectManager;
-import stencyl.core.lib.code.attribute.AttributeType;
-import stencyl.core.lib.code.design.Definition;
-import stencyl.core.lib.code.design.Definition.Category;
-import stencyl.core.lib.code.design.block.BlockType;
-import stencyl.core.lib.code.gen.codemap.BasicCodeMap;
 import stencyl.sw.app.center.GameLibrary;
-import stencyl.sw.app.editors.snippet.designer.block.BlockTheme;
-import stencyl.sw.app.editors.snippet.designer.dropdown.DefaultCodeConverter;
-import stencyl.sw.app.editors.snippet.designer.dropdown.DropdownData;
 import stencyl.sw.app.ext.SWExtensionInstance;
-import stencyl.sw.core.lib.attribute.HaxeAttributeTypes;
 import stencyl.sw.core.lib.game.Game;
-import stencyl.sw.core.lib.snippet.designer.Definitions.DefinitionMap;
-import stencyl.sw.core.lib.snippet.designer.Definitions.OrderedDefinitionMap;
 
 public class ConfigurationsExtension extends GameExtension
 {
@@ -46,7 +35,6 @@ public class ConfigurationsExtension extends GameExtension
 	
 	private Configurations configurations;
 	private Map<String, Map<String, Define>> engineExtensionDefines;
-	private DefinitionMap tagCache;
 	private ConfigurationsPage configurationsPage;
 	
 	public Configurations getConfigurations()
@@ -68,16 +56,14 @@ public class ConfigurationsExtension extends GameExtension
 	@Override
 	public void onLoad()
 	{
-		((SWExtensionInstance) owner()).setAddon(GameLibrary.DASHBOARD_SIDEBAR_PAGE_ADDONS, (PageAddon) this::onGameCenterActivate);
+		owner().setAddon(GameLibrary.DASHBOARD_SIDEBAR_PAGE_ADDONS, (PageAddon) this::onGameCenterActivate);
 
 		configurations = new Configurations();
 		engineExtensionDefines = new HashMap<>();
-		tagCache = new OrderedDefinitionMap();
 
 		engineExtensionDefines.clear();
 		((Game) getProject()).getExtensionManager().getLoadedEnabledExtensions().addListener(extensionUpdateListener);
 		refreshExtensionDefinitions();
-		addDesignModeBlocks();
 
 		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getManifest().id);
 		File configXml = new File(dataLocation, "configurations.xml");
@@ -110,271 +96,15 @@ public class ConfigurationsExtension extends GameExtension
 	{
 		((Game) getProject()).getExtensionManager().getLoadedEnabledExtensions().removeListener(extensionUpdateListener);
 		engineExtensionDefines.clear();
-		
-		for(String tag : tagCache.keySet())
-			((Game) getProject()).getDefinitions().remove(tag);
-		tagCache.clear();
 
 		if(configurationsPage != null)
 			configurationsPage.dispose();
 
 		configurations = null;
 		engineExtensionDefines = null;
-		tagCache = null;
 		configurationsPage = null;
 	}
 
-	public void addDesignModeBlocks()
-	{
-		DefinitionMap defs = ((SWExtensionInstance) owner()).getBlocks();
-		
-		// ===== simple wrapper version
-		
-		String spec = "#if %0";
-		
-		Definition blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-wrap-if",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.CODE_BLOCK },
-			new BasicCodeMap("#if ~\n"
-					+ "{\n"
-						+ "~\n"
-					+ "}\n"
-					+ "#end"),
-			null,
-			spec,
-			BlockType.WRAPPER,
-			HaxeAttributeTypes.VOID,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		// ===== simple inline version
-		
-		spec = "#if %0 %1 else %2";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-inline-ifelse",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.OBJECT, HaxeAttributeTypes.OBJECT },
-			new BasicCodeMap("#if ~ ~ #else ~ #end"),
-			null,
-			spec,
-			BlockType.NORMAL,
-			HaxeAttributeTypes.OBJECT,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		// ===== chain version
-		
-		spec = "#if %0 ...";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-chain-if",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN },
-			new BasicCodeMap("#if ~"),
-			null,
-			spec,
-			BlockType.ACTION,
-			HaxeAttributeTypes.VOID,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "#... else if %0 ...";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-chain-elseif",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN },
-			new BasicCodeMap("#elseif ~"),
-			null,
-			spec,
-			BlockType.ACTION,
-			HaxeAttributeTypes.VOID,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "#... else ...";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-chain-else",
-			new AttributeType[] { HaxeAttributeTypes.OBJECT },
-			new BasicCodeMap("#else"),
-			null,
-			spec,
-			BlockType.ACTION,
-			HaxeAttributeTypes.VOID,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "#... end";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-chain-end",
-			new AttributeType[] { HaxeAttributeTypes.OBJECT },
-			new BasicCodeMap("#end"),
-			null,
-			spec,
-			BlockType.ACTION,
-			HaxeAttributeTypes.VOID,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "%0";
-		
-		//XXX:
-		DropdownData allPlatforms = new DropdownData(
-			new String[] {
-				    "plaf.flash",
-				    "plaf.html5",
-				    "plaf.desktop",
-				    "plaf.ios",
-				    "plaf.android",
-				    "plaf.web",
-				    "plaf.mobile",
-				    "plaf.win",
-				    "plaf.mac",
-				    "plaf.lin" },
-			new DefaultCodeConverter(new String[] {
-					"flash",
-					"html5",
-					"desktop",
-					"ios",
-					"android",
-					"(flash || html5)",
-					"mobile",
-					"windows",
-					"mac",
-					"linux" }));
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-platform-id",
-			new AttributeType[] { HaxeAttributeTypes.DROPDOWN },
-			new BasicCodeMap("~"),
-			null,
-			spec,
-			BlockType.NORMAL,
-			HaxeAttributeTypes.BOOLEAN,
-			null
-		);
-		blockDef.initDropdowns(new DropdownData[] {allPlatforms.copy()});
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "%0 and %1";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-cond-and",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.BOOLEAN },
-			new BasicCodeMap("(~ && ~)"),
-			null,
-			spec,
-			BlockType.NORMAL,
-			HaxeAttributeTypes.BOOLEAN,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "%0 or %1";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-cond-or",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN, HaxeAttributeTypes.BOOLEAN },
-			new BasicCodeMap("(~ || ~)"),
-			null,
-			spec,
-			BlockType.NORMAL,
-			HaxeAttributeTypes.BOOLEAN,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-		
-		spec = "not %0";
-		
-		blockDef = new Definition
-		(
-			Category.CUSTOM,
-			"def-cond-not",
-			new AttributeType[] { HaxeAttributeTypes.BOOLEAN },
-			new BasicCodeMap("!~"),
-			null,
-			spec,
-			BlockType.NORMAL,
-			HaxeAttributeTypes.BOOLEAN,
-			null
-		);
-		
-		blockDef.guiTemplate = spec;
-		blockDef.customBlockTheme = BlockTheme.THEMES.get("charcoal");
-		
-		defs.put(blockDef.tag, blockDef);
-		tagCache.put(blockDef.tag, blockDef);
-	}
-	
 	public JPanel onGameCenterActivate()
 	{
 		if(configurationsPage == null)
@@ -509,9 +239,8 @@ public class ConfigurationsExtension extends GameExtension
 				saveConfigurations(doc, section, (DefaultBranch) leaf);
 				addToElement.appendChild(section);
 			}
-			else if(leaf.getUserData() instanceof Configuration)
+			else if(leaf.getUserData() instanceof Configuration cfgToSave)
 			{
-				Configuration cfgToSave = (Configuration) leaf.getUserData();
 				Element configuration = doc.createElement("configuration");
 				configuration.setAttribute("name", cfgToSave.getName());
 				configuration.setAttribute("description", cfgToSave.getDescription());

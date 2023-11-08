@@ -33,7 +33,7 @@ processResources {
     from('res') {
     	into 'res/com/polydes/configurations'
     }
-    from('icon.png') {
+    from(rootProject.file('icon.png')) {
         into 'com/polydes/configurations/res'
     }
 }
@@ -87,17 +87,4 @@ jar {
 			"Extension-Internal-Version": "1"
 		)
 	}
-}
-
-tasks.register('buildForEngine', Copy) {
-	from(tasks.named("jar")) {
-		rename { fileName -> "toolset-extension.jar" }
-	}
-	into "engine"
-}
-
-tasks.register('installToWorkspace', Sync) {
-	dependsOn(":buildForEngine")
-	from('engine')
-	into stencylWorkspace+"/engine-extensions/com.polydes.configurations"
 }

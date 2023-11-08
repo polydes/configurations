@@ -1,0 +1,12 @@
+tasks.register('buildForEngine', Copy) {
+	from(tasks.named("toolset:jar")) {
+		rename { fileName -> "toolset-extension.jar" }
+	}
+	into "engine"
+}
+
+tasks.register('installToWorkspace', Sync) {
+	dependsOn(":buildForEngine")
+	from('engine')
+	into stencylWorkspace+"/engine-extensions/com.polydes.configurations"
+}

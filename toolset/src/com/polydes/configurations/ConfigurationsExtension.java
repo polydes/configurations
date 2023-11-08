@@ -14,6 +14,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import stencyl.app.ext.PageAddon;
+import stencyl.app.ext.PageAddon.EngineExtensionPageAddon;
 import stencyl.core.api.fs.Locations;
 import stencyl.core.api.pnodes.DefaultBranch;
 import stencyl.core.api.pnodes.DefaultLeaf;
@@ -52,11 +53,20 @@ public class ConfigurationsExtension extends GameExtension
 	{
 		
 	}
-
+	
 	@Override
 	public void onLoad()
 	{
-		owner().setAddon(GameLibrary.DASHBOARD_SIDEBAR_PAGE_ADDONS, (PageAddon) this::onGameCenterActivate);
+		PageAddon configurationsSidebarPage = new EngineExtensionPageAddon(owner())
+		{
+			@Override
+			public JPanel getPage()
+			{
+				return onGameCenterActivate();
+			}
+		};
+		
+		owner().getAddons().setAddon(GameLibrary.DASHBOARD_SIDEBAR_PAGE_ADDONS, configurationsSidebarPage);
 
 		configurations = new Configurations();
 		engineExtensionDefines = new HashMap<>();

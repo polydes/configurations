@@ -1,5 +1,5 @@
 tasks.register('buildForEngine', Copy) {
-	from(tasks.named("toolset:jar")) {
+	from(project('toolset').tasks.named("jar")) {
 		rename { fileName -> "toolset-extension.jar" }
 	}
 	into "engine"

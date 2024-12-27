@@ -19,7 +19,7 @@ var localBuild = project.hasProperty("local_build")
 var localDev = project.hasProperty("local_dev")
 
 group = 'com.polydes'
-version = rootProject.file('version.txt').text.trim()
+version = project.file('../version.txt').text.trim()
 
 sourceSets {
 	main {
@@ -33,7 +33,7 @@ processResources {
     from('res') {
     	into 'res/com/polydes/configurations'
     }
-    from(rootProject.file('icon.png')) {
+    from(project.file('../icon.png')) {
         into 'com/polydes/configurations/res'
     }
 }

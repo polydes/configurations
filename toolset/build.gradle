@@ -5,7 +5,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -44,10 +44,10 @@ repositories {
 	}
 	mavenCentral()
 	maven {
-		url "https://www.stencyl.com/dl/maven2/releases"
+		url = "https://www.stencyl.com/dl/maven2/releases"
 	}
 	maven {
-		url "https://www.stencyl.com/dl/maven2/snapshots"
+		url = "https://www.stencyl.com/dl/maven2/snapshots"
 	}
 }
 
@@ -59,12 +59,12 @@ dependencies {
 		compileOnly project(":stencyl-v5-core")
 		compileOnly project(":stencyl-v5-toolset")
 	} else {
-		compileOnly group: 'com.stencyl', name: 'stencyl', version: '4.1.0-SNAPSHOT'
+		compileOnly 'com.stencyl:stencyl:4.1.0-SNAPSHOT'
 	}
-	compileOnly group: 'com.stencyl',        name: 'jide-oss'
-    compileOnly group: 'org.apache.commons', name: 'commons-lang3'
-	compileOnly group: 'log4j',              name: 'log4j'
-    compileOnly group: 'commons-io',         name: 'commons-io'
+	compileOnly 'com.stencyl:jide-oss'
+    compileOnly 'org.apache.commons:commons-lang3'
+	compileOnly 'log4j:log4j'
+    compileOnly 'commons-io:commons-io'
 }
 
 jar {

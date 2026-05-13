@@ -1,3 +1,11 @@
-rootProject.name = 'configurations'
+pluginManagement {
+    repositories {
+        if (settings.hasProperty("local_build")) {
+            mavenLocal()
+        }
+        maven { url = "https://www.stencyl.com/dl/maven2/releases" }
+        gradlePluginPortal()
+    }
+}
 
-include('toolset')
+rootProject.name = 'configurations'

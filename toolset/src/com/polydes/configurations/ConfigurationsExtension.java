@@ -75,7 +75,7 @@ public class ConfigurationsExtension extends GameExtension
 		((Game) getProject()).getExtensionManager().getLoadedEnabledExtensions().addListener(extensionUpdateListener);
 		refreshExtensionDefinitions();
 
-		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getManifest().id);
+		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getInfo().getID());
 		File configXml = new File(dataLocation, "configurations.xml");
 		if(configXml.exists())
 		{
@@ -132,7 +132,7 @@ public class ConfigurationsExtension extends GameExtension
 		//active game lifecycle.
 		if(configurations == null) return;
 
-		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getManifest().id);
+		String dataLocation = getProject().getFiles().getExtensionGameDataLocation(getInfo().getID());
 		new File(dataLocation).mkdirs();
 		
 		Document doc = FileHelper.newDocument();

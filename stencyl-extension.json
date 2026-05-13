@@ -1,0 +1,36 @@
+{
+  "group": "com.polydes",
+  "id": "com.polydes.configurations",
+  "name": "Configurations",
+  "description": "Allows game to be configured for conditional compilation.",
+  "tags": ["workflow"],
+  "type": "game",
+  "author": "Justin Espedal",
+  "website": "https://www.polydes.com/repo/engine/com.polydes.configurations",
+  "repository": "https://www.polydes.com/repo",
+  "target": "stencyl-4.2.0",
+  "version": "0.1.0",
+
+  "icon": "icon.png",
+
+  "toolset": {
+    "root": "toolset",
+    "src": [
+      {"type": "java", "path": "src"},
+      {"type": "res", "path": "res", "target": "res/com/polydes/configurations"}
+    ],
+    "dependencies": [
+      "platform:com.stencyl:jide-oss",
+      "platform:org.apache.commons:commons-lang3",
+      "platform:log4j:log4j",
+      "platform:commons-io:commons-io"
+    ],
+    "mainClass": "com.polydes.configurations.ConfigurationsExtension",
+    "internalVersion": "1"
+  },
+
+  "engine": {
+    "root": "engine",
+    "compatibility": "all"
+  }
+}

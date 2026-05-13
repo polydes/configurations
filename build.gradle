@@ -1,12 +1,7 @@
-tasks.register('buildForEngine', Copy) {
-	from(project('toolset').tasks.named("jar")) {
-		rename { fileName -> "toolset-extension.jar" }
-	}
-	into "engine"
+plugins {
+    id("com.stencyl.gradle.extension") version "1.0.0"
 }
 
-tasks.register('installToWorkspace', Sync) {
-	dependsOn(":buildForEngine")
-	from('engine')
-	into stencylWorkspace+"/engine-extensions/com.polydes.configurations"
+stencyl {
+    fromJsonFile(file("stencyl-extension.json"))
 }

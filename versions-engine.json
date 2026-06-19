@@ -1,0 +1,23 @@
+{
+  "versions":
+  [
+    {
+      "date": "07/29/2023",
+      "changes": "Changed to a combined engine+toolset extension\nUpdates for Stencyl 4.1.0 beta (b11582)",
+      "version": "0.0.4",
+      "dependencies": "stencylbuild-11582"
+    },
+    {
+      "date": "09/04/2023",
+      "changes": "Fixes for Stencyl 4.1.0 beta (b11582)",
+      "version": "0.0.5",
+      "dependencies": "stencylbuild-11582"
+    },
+    {
+      "date": "12/04/2023",
+      "changes": "Fixes for Stencyl 4.1.0 beta (b12043)",
+      "version": "0.0.7",
+      "dependencies": "stencylbuild-12043"
+    }
+  ]
+}

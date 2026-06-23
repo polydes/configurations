@@ -1,0 +1,72 @@
+{
+  "versions":
+  [
+    {
+      "date": "2020-10-24",
+      "changes":
+      [
+        "Initial version."
+      ],
+      "version": "0.0.1",
+      "dependencies": ""
+    },
+    {
+      "date": "2021-06-23",
+      "changes":
+      [
+        "Stencyl 4.1.0 beta fixes.",
+        "Minor UI polish."
+      ],
+      "version": "0.0.2",
+      "dependencies": ""
+    },
+    {
+      "date": "2022-10-01",
+      "changes":
+      [
+        "Fix error when enabling this extension while a game is open",
+        "Fix error when creating new game while this extension is enabled",
+        "Fix for Stencyl 4.1.0 beta b10938"
+      ],
+      "version": "0.0.3",
+      "dependencies": ""
+    },
+    {
+      "date": "2023-07-29",
+      "changes":
+      [
+        "Changed to a combined engine+toolset extension",
+        "Updates for Stencyl 4.1.0 beta (b11582)"
+      ],
+      "version": "0.0.4",
+      "dependencies": ""
+    },
+    {
+      "date": "2023-09-04",
+      "changes":
+      [
+        "Fixes for Stencyl 4.1.0 beta (b11582)"
+      ],
+      "version": "0.0.5",
+      "dependencies": ""
+    },
+    {
+      "date": "2023-12-04",
+      "changes":
+      [
+        "Fixes for Stencyl 4.1.0 beta (b12043)"
+      ],
+      "version": "0.0.7",
+      "dependencies": ""
+    },
+    {
+      "date": "2026-05-27",
+      "changes":
+      [
+        "Fixes for Stencyl 4.2.0"
+      ],
+      "version": "0.1.0",
+      "dependencies": "stencyl-4.2.0"
+    }
+  ]
+}

@@ -22,7 +22,7 @@
     "dependencies": [
       "platform:com.stencyl:jide-oss",
       "platform:org.apache.commons:commons-lang3",
-      "platform:log4j:log4j",
+      "platform:ch.qos.reload4j:reload4j",
       "platform:commons-io:commons-io"
     ],
     "mainClass": "com.polydes.configurations.ConfigurationsExtension",

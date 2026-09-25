@@ -1,3 +1,7 @@
+# 0.1.1 (2026-09-25)
+
+- Update dependencies
+
 # 0.1.0 (2026-05-27)
 
 - Fixes for Stencyl 4.2.0
